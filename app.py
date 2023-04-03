@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 import random
 import numpy as np
@@ -7,6 +8,11 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
+#using the chardet library to detect the encoding of the file automatically.
+import chardet
+with open('ImplyVolatility_漲跌0.015_.csv', 'rb') as f:
+    result = chardet.detect(f.read()) 
+
 st.title('Implied Volatility Classification')
 
 # Set the random seeds for reproducibility
@@ -15,7 +21,7 @@ np.random.seed(42)
 tf.random.set_seed(42)
 
 # Read CSV
-D = pd.read_csv('ImplyVolatility_漲跌0.015_.csv', encoding='ANSI', low_memory=False)
+D = pd.read_csv('ImplyVolatility_漲跌0.015_.csv', encoding=result['encoding'], low_memory=False)
 
 # Convert the date column to datetime format
 D['date'] = pd.to_datetime(D['date'])
