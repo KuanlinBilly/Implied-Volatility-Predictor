@@ -12,8 +12,6 @@ def show_login_page(placeholders):
     my_username = "ndhu"
     my_password = "1234"
     placeholders[0].title("Welcome!")
-    # st.markdown('###### Made By 第三組')
-    # st.markdown('組員名單：賴冠霖\n蘇瑋棻\n賴品寧\n黃韻菱\n陳雯婕\n蔡名軒')
     placeholders[1].write("Please enter your username and password:")
 
     username = placeholders[2].text_input("Username", value = my_username ) #為了方便，先預設填入帳密
