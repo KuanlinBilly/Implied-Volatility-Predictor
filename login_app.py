@@ -12,12 +12,13 @@ def show_login_page(placeholders):
     my_username = "ndhu"
     my_password = "1234"
     placeholders[0].title("Welcome!")
-    placeholders[1].write("Please enter your username and password:")
+    placeholders[1].markdown("**This is an Implied Volatility Predictor, Made by 大數據統計分析_第三組**")
+    placeholders[2].write("Please enter your username and password:")
 
-    username = placeholders[2].text_input("Username", value = my_username ) #為了方便，先預設填入帳密
-    password = placeholders[3].text_input("Password", type="password", value= my_password)
+    username = placeholders[3].text_input("Username", value = my_username ) #為了方便，先預設填入帳密
+    password = placeholders[4].text_input("Password", type="password", value= my_password)
 
-    if placeholders[4].button("Login"):
+    if placeholders[5].button("Login"):
         # You should replace these credentials with your actual username and password
         stored_username = my_username
         stored_password = hashlib.sha256(my_password.encode()).hexdigest()
@@ -27,7 +28,7 @@ def show_login_page(placeholders):
                 placeholder.empty()
             return True
         else:
-            placeholders[5].error("Incorrect username or password")
+            placeholders[6].error("Incorrect username or password")
             return False
 
 # Define a function to display the main content of the web app
@@ -40,7 +41,7 @@ def main():
         st.session_state.login_status = False
 
     if not st.session_state.login_status:
-        placeholders = [st.empty() for _ in range(6)]
+        placeholders = [st.empty() for _ in range(7)]
         st.session_state.login_status = show_login_page(placeholders)
 
     if st.session_state.login_status:
