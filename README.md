@@ -37,12 +37,12 @@ The integration of MongoDB for storing user comments enables seamless collaborat
 <div align=center>
 <img src="https://github.com/KuanlinBilly/Implied-Volatility-Predictor/blob/main/img-folder/login.jpg">
 </div>   
-3. Upload your data file (in CSV or Excel format) or use the default data file provided.   
-4. Select the input features to be used for model training.    
-5. Adjust the model hyperparameters as desired (test size, hidden layers, neurons, and epochs).   
-6. Toggle the "Model Training Details" switch to view the model's performance metrics.    
-7. Click the "Predict" button to generate implied volatility predictions.    
-8. View the predicted results on the app's output page.    
+2. Upload your data file (in CSV or Excel format) or use the default data file provided.   
+3. Select the input features to be used for model training.    
+4. Adjust the model hyperparameters as desired (test size, hidden layers, neurons, and epochs).   
+5. Toggle the "Model Training Details" switch to view the model's performance metrics.    
+6. Click the "Predict" button to generate implied volatility predictions.    
+7. View the predicted results on the app's output page.    
 
 ## Data Used for Training the Model
 The default dataset used in the app is the options prices and corresponding implied volatility values of **TSEC weighted index (^TWII)**.
