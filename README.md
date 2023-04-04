@@ -33,10 +33,11 @@ The app includes a login page to ensure only authorized users have access. This 
 The integration of MongoDB for storing user comments enables seamless collaboration and feedback among users. This feature allows users to share insights, observations, and suggestions related to the app and the model's performance, fostering a sense of community and encouraging continuous improvement.
 
 ## How to Use the App
-1. Sign in to the app using your credentials. You can enter the app with Username: ndhu, passwords: 1234.   
 <div align=center>
 <img src="https://github.com/KuanlinBilly/Implied-Volatility-Predictor/blob/main/img-folder/login.jpg">
-</div>   
+</div>
+
+1. Sign in to the app using your credentials. You can enter the app with Username: ndhu, passwords: 1234.   
 2. Upload your data file (in CSV or Excel format) or use the default data file provided.   
 3. Select the input features to be used for model training.    
 4. Adjust the model hyperparameters as desired (test size, hidden layers, neurons, and epochs).   
