@@ -4,11 +4,9 @@
 <img src="https://github.com/KuanlinBilly/Implied-Volatility-Predictor/blob/main/img-folder/webapp.jpg">
 </div>
 
-This Implied Volatility Predictor Web App is designed to help users predict implied volatility, which is a crucial element in quant trading strategies.   
-It provides a user-friendly interface to train and customize a neural network for implied volatility prediction. The app employs MongoDB to store user comments, enhancing the project's overall functionality and allowing for seamless collaboration and feedback.
-
 ## Overview
-Implied volatility is a key factor in options pricing, and predicting it accurately can lead to profitable trading opportunities. This app allows users to harness the power of neural networks to predict implied volatility, enabling them to make better-informed trading decisions in the options market.
+This Implied Volatility Predictor Web App is designed to help users predict implied volatility, which is a crucial element in options pricing and quant trading strategies.   
+This app provides a user-friendly interface to train and customize a neural network for implied volatility prediction. The app employs MongoDB to store user comments, enhancing the project's overall functionality and allowing for seamless collaboration and feedback.
 
 ## Features
 * Login page for secure access
