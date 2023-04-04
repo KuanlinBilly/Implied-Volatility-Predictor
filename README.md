@@ -1,7 +1,5 @@
-# Implied-Volatility-Predictor-Web-App
+# Implied-Volatility-Predictor
 [Web App Link](https://kuanlinbilly-implied-volatility-predictor-via-deep-l-app-d3yr2f.streamlit.app/)
-
-# Implied Volatility Predictor via Deep Learning
 
 This is a project for predicting implied volatility using deep learning. The project uses a neural network to classify implied volatility based on historical data. 
 
