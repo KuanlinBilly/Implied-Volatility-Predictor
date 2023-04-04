@@ -1,8 +1,7 @@
 # add login page for app3
 import streamlit as st
 import hashlib
-from app3 import implied_volatility_predictor  
-from app3 import * 
+from predictor_app import * 
 
 # Function to verify the user's password (you should replace this with your actual authentication method)
 def verify_password(stored_password, provided_password):
