@@ -1,4 +1,4 @@
-# Implied-Volatility-Predictor-via-Deep-Learning
+# Implied-Volatility-Predictor-Web-App
 [Web App Link](https://kuanlinbilly-implied-volatility-predictor-via-deep-l-app-d3yr2f.streamlit.app/)
 
 # Implied Volatility Predictor via Deep Learning
