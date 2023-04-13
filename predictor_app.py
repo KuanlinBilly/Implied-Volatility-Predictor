@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 #add chatbox
-import streamlit as st
-import random
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-import seaborn as sns
-import chardet
 import os
 import time
+import random
+import chardet
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import tensorflow as tf
 from pymongo import MongoClient
+from sklearn.model_selection import train_test_split
+import streamlit as st
 
 # MongoDB connection details
 mongo_id = 'mongodb+srv://ndhu:ndhu@cluster0.vnqxzcd.mongodb.net/?retryWrites=true&w=majority'
@@ -20,21 +19,154 @@ mongo_client = MongoClient(mongo_id)
 mongo_db = mongo_client["ndhu"]
 mongo_collection = mongo_db['comment']  # mini database
 
+ 
+class DataLoader:
+    def __init__(self, csv_choice):
+        self.csv_choice = csv_choice
+    
+    def read_csv_file(self, file_path):
+        with open(file_path, 'rb') as f:
+            result = chardet.detect(f.read())
+        return pd.read_csv(file_path, encoding=result['encoding'], low_memory=False)
 
+    def load_data(self):
+        # Allow user to choose input file
+        bottom1 = "Use Default Data File"
+        bottom2 = "Upload Data File"
+        
+        if self.csv_choice == bottom2:
+            uploaded_file = st.sidebar.file_uploader("Choose a CSV/Excel file")
+        
+            if uploaded_file is not None:
+                # Determine the file format based on the file extension
+                file_extension = uploaded_file.name.split(".")[-1].lower()
+            
+                if file_extension == "csv":
+                    D = pd.read_csv(uploaded_file, low_memory=False)
+                elif file_extension == "xlsx":
+                    D = pd.read_excel(uploaded_file, engine="openpyxl")
+                else:
+                    st.sidebar.error("Unsupported file format. Please upload a CSV or Excel file.")
+                    return None
+                    
+                # Rename the last column to 'Target'
+                D.rename(columns={D.columns[-1]: 'Target'}, inplace=True)
+                return D
+        
+        # If user chooses to use the default file, read it in and process it
+        elif self.csv_choice == bottom1:
+            # Read the default CSV file
+            D = self.read_csv_file('ImplyVolatility_漲跌0.015_.csv')
+            D.rename(columns={D.columns[-1]: 'Target'}, inplace=True)
+            return D
+        
+        return None
+
+
+class EDA:
+    def __init__(self, D, columns):
+        self.data = D
+        self.columns = columns
+    
+    def basic_info(self): #basic analysis
+        st.write(f"Number of rows: {len(self.data)}")
+        st.write(f"Number of columns: {len(self.columns)}")
+        st.write(f"Target variable classes: {self.data.Target.unique()}")
+        
+        st.subheader("前五行")
+        st.write(self.data.head())
+
+        st.subheader("Correlation")
+        st.write(self.data.corr())
+
+        st.subheader("Descriptive Statistics")
+        st.write(self.data.describe())
+    
+    def plot(self):
+        st.markdown("Correlation Heatmap")
+        sns.set(style="white")
+        corr = self.data.corr()
+        mask = np.zeros_like(corr, dtype=np.bool)
+        mask[np.triu_indices_from(mask)] = True
+        f, ax = plt.subplots(figsize=(11, 9))
+        cmap = sns.diverging_palette(220, 10, as_cmap=True)
+        sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5})
+        st.pyplot(f)
+
+        st.markdown("Pairplot")
+        sns.pairplot(self.data, hue="Target", corner=True)
+        st.pyplot()
+
+ 
+def comment_box():
+    # Initialize session state for comment box
+    if "show_comment_box" not in st.session_state:
+        st.session_state.show_comment_box = False
+    
+    # Show or hide comment box with a button
+    if st.sidebar.button("點這裡開啟留言區"):
+        st.session_state.show_comment_box = not st.session_state.show_comment_box
+    
+        # Comment section in the right sidebar
+    if st.session_state.show_comment_box:
+        st.sidebar.subheader("歡迎給我們一些建議！")
+    
+        # Input new comment
+        new_comment = st.sidebar.text_area("Leave a comment here", value="", height=100)
+    
+        # Save and display new comment
+        if st.sidebar.button("Submit comment"):
+            # Fetch comments from MongoDB collection
+            comments_count = mongo_collection.count_documents({})
+    
+            # Create a comment document
+            comment_doc = {
+                "_id": comments_count,
+                "name": "Anonymous",
+                "comment": new_comment,
+            }
+    
+            # Add this line to remove the '_id' field from the comment_doc
+            comment_doc.pop('_id', None)
+            # Insert the comment into the MongoDB collection
+            mongo_collection.insert_one(comment_doc)
+            st.sidebar.write("留言已送出，感謝您的寶貴建議")
+            # Clear the comment box after submission
+            st.session_state.new_comment = ''
+
+def preprocess_data(D):
+    D['date'] = pd.to_datetime(D['date'])
+    D = D.set_index('date')
+
+    # Convert the input data to numerical values
+    for column in D.columns:
+        if column != 'date':
+            D[column] = pd.to_numeric(D[column], errors='coerce').fillna(0).astype(float)
+
+    feature_columns = D.columns[:-1].tolist()
+    selected_features = st.sidebar.multiselect("Select features in dataset for model training", feature_columns, default=feature_columns)
+
+    # Update the dataset with the selected features
+    D = D.filter(selected_features + ['Target'])
+    columns = list(D.columns)
+    
+    return D, columns
+
+# this is the main function
 def implied_volatility_predictor():  
 
     st.set_option('deprecation.showPyplotGlobalUse', False)
     
     # Add title and description
     st.title('Implied Volatility Predictor')
-    st.text('Made By Kuanlin Lai')
+    st.text('By Kuanlin Lai')
     st.markdown("##### You can customize and train a neural network for implied volatility prediction using this web app!")
     
     
     # In the sidebar, allow users to enable or disable random seed initialization
     allow_randomness = st.sidebar.checkbox("Check this to Allow Randomization")
     
-    # Add new feature: Allow Randomness and input field for Model Training Times
+    # Add feature: Allow Randomness and input field for Model Training Times
     model_training_times = 1
     if allow_randomness:
         model_training_times = st.sidebar.number_input("Model Training Times", min_value=1, value=1)
@@ -43,132 +175,40 @@ def implied_volatility_predictor():
         random.seed(42)
         np.random.seed(42)
         tf.random.set_seed(42)
+    
         
- 
+    # data reading part
     # Allow user to choose input file
     bottom1 = "Use Default Data File"
     bottom2 = "Upload Data File"
     csv_choice = st.sidebar.radio("Select Input", (bottom1, bottom2))
     
-    # If user uploads a file, read it in and process it
-    if csv_choice == bottom2:
-        uploaded_file = st.sidebar.file_uploader("Choose a CSV/Excel file")
-    
-        if uploaded_file is not None:
-            # Determine the file format based on the file extension
-            file_extension = uploaded_file.name.split(".")[-1].lower()
-        
-            if file_extension == "csv":
-                D = pd.read_csv(uploaded_file, low_memory=False)
-            elif file_extension == "xlsx":
-                D = pd.read_excel(uploaded_file, engine="openpyxl")
-            else:
-                st.sidebar.error("Unsupported file format. Please upload a CSV or Excel file.")
-                
-            # Rename the last column to 'Target'
-            D.rename(columns={D.columns[-1]: 'Target'}, inplace=True)
-    
-    # If user chooses to use the default file, read it in and process it
-    elif csv_choice == bottom1:
-        # Read the default CSV file
-        with open('ImplyVolatility_漲跌0.015_.csv', 'rb') as f:
-            result = chardet.detect(f.read())
-        D = pd.read_csv('ImplyVolatility_漲跌0.015_.csv', encoding=result['encoding'], low_memory=False)
+    # create instance of DataLoader
+    data_loader = DataLoader(csv_choice)
+    # load the data
+    D = data_loader.load_data()
     
     
-    # Proceed if any CSV file is selected (uploaded or default)
-    if 'D' in locals():
-        # Convert the date column to datetime format
-        D['date'] = pd.to_datetime(D['date'])
-        # Set the date column as the index
-        D = D.set_index('date')
-    
-        # Convert the input data to numerical values
-        for column in D.columns:
-            if column != 'date':
-                D[column] = pd.to_numeric(D[column], errors='coerce').fillna(0).astype(float)
-    
-        feature_columns = D.columns[:-1].tolist()
-        selected_features = st.sidebar.multiselect("Select features in dataset for model training", feature_columns, default=feature_columns)
-    
-        # Update the dataset with the selected features
-        D = D.filter(selected_features + ['Target'])
-    
-    
-        columns = list(D.columns)
-        
+    # Proceed if any CSV or excel file is selected (uploaded or default)
+    if D is not None:      
+        D, columns = preprocess_data(D)
         
         # Initialize session state for button
         if "show_data" not in st.session_state:
             st.session_state.show_data = False
     
         # Toggle basic info of the data
-        if st.button("See Basic Info of the Data"):
+        if st.button("See Basic Info and EDA of the Data"):
             st.session_state.show_data = not st.session_state.show_data
-    
+            
+        #exploratory data analysis
         if st.session_state.show_data:
+            eda = EDA(D,columns)
+            eda.basic_info()
+            eda.plot()
             
-            st.write(f"Number of rows: {len(D)}")
-            st.write(f"Number of columns: {len(columns)}")
-            st.write(f"Target variable classes: {D.Target.unique()}")
-            
-            st.subheader("前五行")
-            st.write(D.head())
-    
-            st.subheader("Correlation")
-            st.write(D.corr())
-    
-            st.subheader("Descriptive Statistics")
-            st.write(D.describe())
-    
-            st.markdown("Correlation Heatmap")
-            sns.set(style="white")
-            corr = D.corr()
-            mask = np.zeros_like(corr, dtype=np.bool)
-            mask[np.triu_indices_from(mask)] = True
-            f, ax = plt.subplots(figsize=(11, 9))
-            cmap = sns.diverging_palette(220, 10, as_cmap=True)
-            sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5})
-            st.pyplot(f)
-            
-            st.markdown("Pairplot")
-            sns.pairplot(D, hue="Target", corner=True)
-            st.pyplot()
-            
-        # Initialize session state for comment box
-        if "show_comment_box" not in st.session_state:
-            st.session_state.show_comment_box = False
-        
-        # Show or hide comment box with a button
-        if st.sidebar.button("點這裡開啟留言區"):
-            st.session_state.show_comment_box = not st.session_state.show_comment_box
-        
-            # Comment section in the right sidebar
-        if st.session_state.show_comment_box:
-            st.sidebar.subheader("歡迎給我們一些建議！")
-        
-            # Input new comment
-            new_comment = st.sidebar.text_area("Leave a comment here", value="", height=100)
-        
-            # Save and display new comment
-            if st.sidebar.button("Submit comment"):
-                # Fetch comments from MongoDB collection
-                comments_count = mongo_collection.count_documents({})
-        
-                # Create a comment document
-                comment_doc = {
-                    "_id": comments_count,
-                    "name": "Anonymous",
-                    "comment": new_comment,
-                }
-        
-                # Add this line to remove the '_id' field from the comment_doc
-                comment_doc.pop('_id', None)
-                # Insert the comment into the MongoDB collection
-                mongo_collection.insert_one(comment_doc)
-                st.sidebar.write("留言已送出，感謝您的寶貴建議")
-                # Clear the comment box after submission
-                st.session_state.new_comment = ''
+        # Comment section in the right sidebar
+        comment_box()
 
 
             
@@ -216,7 +256,7 @@ def implied_volatility_predictor():
     # Initialize the logger
     logger = TrainingLogger()
         
-        #if click the training bottom
+    #if click the training bottom
  
     if st.button('Train'):
         start_time = time.time()
