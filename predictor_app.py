@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#add chatbox
 import os
 import time
 import random
@@ -98,41 +97,47 @@ class EDA:
         st.pyplot()
 
  
-def comment_box():
-    # Initialize session state for comment box
-    if "show_comment_box" not in st.session_state:
-        st.session_state.show_comment_box = False
-    
-    # Show or hide comment box with a button
-    if st.sidebar.button("點這裡開啟留言區"):
-        st.session_state.show_comment_box = not st.session_state.show_comment_box
-    
+class CommentBox:
+    def __init__(self, mongo_collection):
+        self.mongo_collection = mongo_collection
+
+    def display(self):
+        # Initialize session state for comment box
+        if "show_comment_box" not in st.session_state:
+            st.session_state.show_comment_box = False
+
+        # Show or hide comment box with a button
+        if st.sidebar.button("點這裡開啟留言區"):
+            st.session_state.show_comment_box = not st.session_state.show_comment_box
+
         # Comment section in the right sidebar
-    if st.session_state.show_comment_box:
-        st.sidebar.subheader("歡迎給我們一些建議！")
-    
-        # Input new comment
-        new_comment = st.sidebar.text_area("Leave a comment here", value="", height=100)
-    
-        # Save and display new comment
-        if st.sidebar.button("Submit comment"):
-            # Fetch comments from MongoDB collection
-            comments_count = mongo_collection.count_documents({})
-    
-            # Create a comment document
-            comment_doc = {
-                "_id": comments_count,
-                "name": "Anonymous",
-                "comment": new_comment,
-            }
-    
-            # Add this line to remove the '_id' field from the comment_doc
-            comment_doc.pop('_id', None)
-            # Insert the comment into the MongoDB collection
-            mongo_collection.insert_one(comment_doc)
-            st.sidebar.write("留言已送出，感謝您的寶貴建議")
-            # Clear the comment box after submission
-            st.session_state.new_comment = ''
+        if st.session_state.show_comment_box:
+            st.sidebar.subheader("歡迎給我們一些建議！")
+
+            # Input new comment
+            new_comment = st.sidebar.text_area("Leave a comment here", value="", height=100)
+
+            # Save and display new comment
+            if st.sidebar.button("Submit comment"):
+                # Fetch comments from MongoDB collection
+                comments_count = self.mongo_collection.count_documents({})
+
+                # Create a comment document
+                comment_doc = {
+                    "_id": comments_count,
+                    "name": "Anonymous",
+                    "comment": new_comment,
+                }
+
+                # Add this line to remove the '_id' field from the comment_doc
+                comment_doc.pop('_id', None)
+                # Insert the comment into the MongoDB collection
+                self.mongo_collection.insert_one(comment_doc)
+                st.sidebar.write("留言已送出，感謝您的寶貴建議")
+                # Clear the comment box after submission
+                st.session_state.new_comment = ''
+
+
 
 def preprocess_data(D):
     D['date'] = pd.to_datetime(D['date'])
@@ -151,6 +156,56 @@ def preprocess_data(D):
     columns = list(D.columns)
     
     return D, columns
+
+
+class NeuralNetwork:
+    def __init__(self, dim, neurons, category):
+        self.model = tf.keras.models.Sequential()
+        self.build_model(dim, neurons, category)
+    
+    def build_model(self, dim, neurons, category):
+        self.model.add(
+            tf.keras.layers.Dense(units=40, activation=tf.nn.relu, input_dim=dim)
+        )
+        for num_neurons in neurons:
+            self.model.add(
+                tf.keras.layers.Dense(units=num_neurons, activation=tf.nn.relu)
+            )
+        self.model.add(
+            tf.keras.layers.Dense(units=category, activation=tf.nn.softmax)
+        )
+        self.model.compile(
+            optimizer='adam',
+            loss=tf.keras.losses.categorical_crossentropy,
+            metrics=['accuracy'],
+        )
+
+    def train(self, x_train, y_train2, num_epochs, batch_size, see_training_details, logger=None):
+        if see_training_details:
+            return self.model.fit(
+                x_train,
+                y_train2,
+                epochs=num_epochs,
+                batch_size=100,
+                callbacks=[logger],
+                verbose=0,
+            )
+        else:
+            return self.model.fit(
+                x_train,
+                y_train2,
+                epochs=num_epochs,
+                batch_size=batch_size,
+                verbose=0,
+            )
+
+    def evaluate(self, x_test, y_test2):
+        return self.model.evaluate(x_test, y_test2, batch_size=len(y_test2))
+
+    def predict(self, x_test):
+        return self.model.predict(x_test)
+
+ 
 
 # this is the main function
 def implied_volatility_predictor():  
@@ -206,12 +261,7 @@ def implied_volatility_predictor():
             eda = EDA(D,columns)
             eda.basic_info()
             eda.plot()
-            
-        # Comment section in the right sidebar
-        comment_box()
-
-
-            
+             
         # User-defined test size
         test_size = st.slider('Test size (percentage)', min_value=0.0, max_value=1.0, value=0.2, step=0.01)
     
@@ -256,6 +306,11 @@ def implied_volatility_predictor():
     # Initialize the logger
     logger = TrainingLogger()
         
+    
+    # comment_box  
+    comment_box = CommentBox(mongo_collection)
+    comment_box.display()
+
     #if click the training bottom
  
     if st.button('Train'):
@@ -263,62 +318,15 @@ def implied_volatility_predictor():
         accuracies = []
     
         for training_iteration in range(model_training_times):
+            
             # Create the model
-            model = tf.keras.models.Sequential()
+            neural_network = NeuralNetwork(dim, neurons, category)
+            history = neural_network.train(x_train, y_train2, num_epochs, batch_size, see_training_details, logger)
+            score = neural_network.evaluate(x_test, y_test2)
+            #predict = neural_network.predict(x_test) #we don't need to show this in app for now
     
-            # Input layer
-            model.add(
-                tf.keras.layers.Dense(units=40, activation=tf.nn.relu, input_dim=dim)
-            )
-    
-            # Hidden layers
-            for num_neurons in neurons:
-                model.add(
-                    tf.keras.layers.Dense(units=num_neurons, activation=tf.nn.relu)
-                )
-    
-            # Output layer
-            model.add(
-                tf.keras.layers.Dense(units=category, activation=tf.nn.softmax)
-            )
-    
-            # Compile the model
-            model.compile(
-                optimizer='adam',
-                loss=tf.keras.losses.categorical_crossentropy,
-                metrics=['accuracy'],
-            )
-    
-            # Train the model
-            if see_training_details:
-                history = model.fit(
-                    x_train,
-                    y_train2,
-                    epochs=num_epochs,
-                    batch_size=100,
-                    callbacks=[logger],
-                    verbose=0,
-                )
-            else:
-                history = model.fit(
-                    x_train,
-                    y_train2,
-                    epochs=num_epochs,
-                    batch_size=batch_size,
-                    verbose=0,
-                )
-    
-            # Evaluate the model
-            score = model.evaluate(x_test, y_test2, batch_size=len(y_test))
-            #st.write(f"Score: {score}")
-    
-            # Make predictions
-            predict = model.predict(x_test)
-            predict2 = np.argmax(predict, axis=1)
-    
-            # Calculate accuracy
-            correct_predictions = np.sum(predict2 == np.argmax(y_test2, axis=1))
-            accuracy = correct_predictions / len(y_test)
+            # store each time's accuracy when we run the model into an accuracy list
+            _, accuracy = score[0], score[1]
             accuracies.append(accuracy)
             
             if model_training_times > 1:
