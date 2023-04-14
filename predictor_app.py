@@ -201,8 +201,14 @@ class NeuralNetwork:
 
 # this is the main function
 def implied_volatility_predictor():  
-
+ 
+    
     st.set_option('deprecation.showPyplotGlobalUse', False)
+    
+    # Load the custom CSS file
+    custom_css = open("styles.css").read()
+    st.markdown(f'<style>{custom_css}</style>', unsafe_allow_html=True)
+
     
     # Add title and description
     st.title('Implied Volatility Predictor')
