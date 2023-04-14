@@ -181,21 +181,13 @@ class NeuralNetwork:
         )
 
     def train(self, x_train, y_train2, num_epochs, batch_size, see_training_details, logger=None):
-        if see_training_details:
-            return self.model.fit(
-                x_train,
-                y_train2,
-                epochs=num_epochs,
-                batch_size=100,
-                callbacks=[logger],
-                verbose=0,
-            )
-        else:
+        if logger is not None:
             return self.model.fit(
                 x_train,
                 y_train2,
                 epochs=num_epochs,
                 batch_size=batch_size,
+                callbacks=[logger],
                 verbose=0,
             )
 
@@ -287,89 +279,108 @@ def implied_volatility_predictor():
             st.number_input(f'Number of neurons for hidden layer {i + 1}', min_value=1, max_value=100, value=40)
             for i in range(num_layers)
         ]
-        num_epochs = st.number_input('Number of epochs', min_value=1, max_value=10000, value=2500)
+        num_epochs = st.number_input('Number of epochs', min_value=1, max_value=100000, value=2500)
         # Allow users to set the batch size
         batch_size = st.number_input("Batch Size", min_value=1, max_value=10000, value=100)
         
     # Add a new checkbox in the sidebar for 'See Training Details'
     see_training_details = st.sidebar.checkbox("See Training Details")
     
+    #see_training_details = True
     # Create the TrainingLogger class
     class TrainingLogger(tf.keras.callbacks.Callback):
+        def __init__(self, progress_bar):
+            super(TrainingLogger, self).__init__()
+            self.progress_bar = progress_bar
+    
         def on_epoch_end(self, epoch, logs=None):
             logs = logs or {}
+            self.progress_bar.progress((epoch + 1) / num_epochs)
             if see_training_details:
                 st.sidebar.write(f"Epoch {epoch+1}/{num_epochs}")
                 for key, value in logs.items():
                     st.sidebar.write(f"{key}: {value:.4f}")
-    
-    # Initialize the logger
-    logger = TrainingLogger()
-        
-    
+            
+
     # comment_box  
     comment_box = CommentBox(mongo_collection)
     comment_box.display()
+    
+    
+    try: 
+        #if click the training bottom
+        if st.button('Train'):
+            # Add progress bar
+            progress_bar = st.progress(0)
+            logger = TrainingLogger(progress_bar)
+            
+            start_time = time.time()
+            accuracies = []
+        
+            for training_iteration in range(model_training_times):
+    
+                # model training
+                neural_network = NeuralNetwork(dim, neurons, category)
+                
+                #progress_bar
+                
+                
+                history = neural_network.train(x_train, y_train2, num_epochs, batch_size, see_training_details, logger)
+                score = neural_network.evaluate(x_test, y_test2)
+                #predict = neural_network.predict(x_test) # we don't need to show this in app for now
+        
+                # store each time's accuracy when we run the model into an accuracy list
+                _, accuracy = score[0], score[1]
+                accuracies.append(accuracy)
+     
+                
+                if model_training_times > 1:
+                    st.write(f"完成第{training_iteration + 1}次訓練，模型準確率為： {accuracy:.6f}")
+            # Clear progress bar when training is finished
+            #progress_bar.empty()
+            
+            end_time = time.time()
+            total_time = end_time - start_time
+                
+            st.write(f'運行程式共花費了: {total_time:.2f} 秒')    
+                    
 
-    #if click the training bottom
- 
-    if st.button('Train'):
-        start_time = time.time()
-        accuracies = []
-    
-        for training_iteration in range(model_training_times):
-            
-            # Create the model
-            neural_network = NeuralNetwork(dim, neurons, category)
-            history = neural_network.train(x_train, y_train2, num_epochs, batch_size, see_training_details, logger)
-            score = neural_network.evaluate(x_test, y_test2)
-            #predict = neural_network.predict(x_test) #we don't need to show this in app for now
-    
-            # store each time's accuracy when we run the model into an accuracy list
-            _, accuracy = score[0], score[1]
-            accuracies.append(accuracy)
-            
+            # Display the accuracies dataframe and the average accuracy at the bottom of the webpage
             if model_training_times > 1:
-                st.write(f"完成第{training_iteration + 1}次訓練，模型準確率為： {accuracy:.6f}")
-
-        end_time = time.time()
-        total_time = end_time - start_time
+     
+                st.subheader("All Accuracies")
+                accuracies_df = pd.DataFrame({"Training Iteration": range(1, model_training_times + 1), "Accuracy": accuracies})
+                st.write(accuracies_df)
         
-        st.write(f'運行程式共花費了: {total_time:.2f} 秒')
-
-        # Display the accuracies dataframe and the average accuracy at the bottom of the webpage
-        if model_training_times > 1:
- 
-            st.subheader("All Accuracies")
-            accuracies_df = pd.DataFrame({"Training Iteration": range(1, model_training_times + 1), "Accuracy": accuracies})
-            st.write(accuracies_df)
-    
-            # Calculate and display the average accuracy
-            average_accuracy = np.mean(accuracies)
-            st.subheader("Average Accuracy")
-            st.write(f"Average Accuracy:　{average_accuracy:.6f}")
-    
-        # Show individual score and accuracy if model_training_times is 1
-        else:
-            st.write(f"Score: {score}")
-            st.write(f"Accuracy = {accuracies[0]:.6f}")
-
+                # Calculate and display the average accuracy
+                average_accuracy = np.mean(accuracies)
+                st.subheader("Average Accuracy")
+                st.write(f"Average Accuracy:　{average_accuracy:.6f}")
         
-        # Plot accuracy and loss
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+            # Show individual score and accuracy if model_training_times is 1
+            else:
+                st.write(f"Score: {score}")
+                st.write(f"Accuracy = {accuracies[0]:.6f}")
     
-        ax1.plot(history.history['accuracy'])
-        ax1.set_title('Implied Volatility classification')
-        ax1.set_ylabel('accuracy')
-        ax1.set_xlabel('epoch')
-        ax1.legend(['train accuracy'], loc='lower left')
-    
-        ax2.plot(history.history['loss'])
-        ax2.set_title('Implied Volatility classification')
-        ax2.set_ylabel('loss')
-        ax2.set_xlabel('epoch')
-        ax2.legend(['train loss'], loc='upper left')
-        st.pyplot(fig)
-
+            
+            # Plot accuracy and loss
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+        
+            ax1.plot(history.history['accuracy'])
+            ax1.set_title('Implied Volatility classification')
+            ax1.set_ylabel('accuracy')
+            ax1.set_xlabel('epoch')
+            ax1.legend(['train accuracy'], loc='lower left')
+        
+            ax2.plot(history.history['loss'])
+            ax2.set_title('Implied Volatility classification')
+            ax2.set_ylabel('loss')
+            ax2.set_xlabel('epoch')
+            ax2.legend(['train loss'], loc='upper left')
+            st.pyplot(fig)
+    except: 
+        st.write('發生錯誤，請再重新按一次Train按鈕，請勿在訓練過程中變更參數或其他設定') 
+        st.write('若要在訓練過程中變更參數或其他設定，請先按右上角Stop按鈕停止訓練，再進行變更')
+        
 if __name__ == "__main__":
     implied_volatility_predictor()
