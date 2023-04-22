@@ -11,7 +11,9 @@ import tensorflow as tf
 from pymongo import MongoClient
 from sklearn.model_selection import train_test_split
 import streamlit as st
-from modules import DataLoader, EDA, CommentBox, TrainingLogger, NeuralNetwork, preprocess_data, ModelTraining, plot_training_history
+from modules import DataLoader, EDA, CommentBox, TrainingLogger, NeuralNetwork, preprocess_data, ModelTraining, plot_training_history, download_model
+import pickle
+import base64
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
@@ -119,6 +121,11 @@ def implied_volatility_predictor():
                 model_training = ModelTraining(neural_network, model_training_times, num_epochs, batch_size, see_training_details)
                 accuracies, history, total_time, score = model_training.train_and_evaluate(x_train, y_train2, x_test, y_test2)
                 model_training.display_results(accuracies, history, total_time, score)
+                
+        #  下載模型 
+        if neural_network is not None:        
+            download_model(neural_network.model)
+    
     except: 
         st.write('發生錯誤，請再重新按一次Train按鈕，請勿在訓練過程中變更參數或其他設定') 
         st.write('若要在訓練過程中變更參數或其他設定，請先按右上角Stop按鈕停止訓練，再進行變更')
