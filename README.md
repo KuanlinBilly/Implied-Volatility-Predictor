@@ -22,16 +22,16 @@
 
 ## How this App can help you?
 ### Quant Trading
-The Implied Volatility Predictor Web App can be a valuable tool for traders who want to better understand the potential movement of options prices. By providing accurate predictions of implied volatility, the app can help users make more informed decisions when trading options, leading to better risk management and potentially more profitable trades.
+The Implied Volatility Predictor Web App is a valuable tool for traders looking to better understand the potential movement of options prices. Accurate predictions of implied volatility help users make informed decisions, leading to improved risk management and potentially more profitable trades.
 
 ### Customizable Model
-The app's customizable neural network model is a key feature that allows users to tailor the model to their specific requirements. Users can select and adjust various hyperparameters to optimize the model's performance, giving them more control over the prediction process.
+The app's neural network model can be tailored to user requirements by selecting and adjusting various hyperparameters, optimizing model performance and giving users more control over the prediction process.
 
 ### Secure Access
-The app includes a login page to ensure only authorized users have access. This feature protects the user's data and prevents unauthorized access to the model and its predictions.
+The login page ensures only authorized users can access the app, protecting user data and preventing unauthorized access to the model and its predictions.
 
 ### Collaboration and Feedback
-The integration of MongoDB for storing user comments enables seamless collaboration and feedback among users. This feature allows users to share insights, observations, and suggestions related to the app and the model's performance, fostering a sense of community and encouraging continuous improvement.
+The integration of MongoDB for storing user comments enables seamless collaboration and feedback among users, fostering a sense of community and encouraging continuous improvement.
 
 ## How to Use the App
 <div align=center>
@@ -47,12 +47,10 @@ The integration of MongoDB for storing user comments enables seamless collaborat
 7. View the predicted results on the app's output page.    
 
 ## Data Used for Training the Model
-The default dataset used in the app is the options prices and corresponding implied volatility values of **TSEC weighted index (^TWII)**.
+The app's default dataset contains options prices and corresponding implied volatility values for the TSEC weighted index (^TWII).
 
 ## Conclusion
-The project showcases how to use Streamlit for web app development, neural networks for predictive modeling, and MongoDB for data storage and retrieval. The app provides a practical solution for predicting implied volatility in options trading, while also offering a customizable model and a collaborative platform for users.
+The Implied Volatility Predictor Web App demonstrates the use of Streamlit for web app development, neural networks for predictive modeling, and MongoDB for data storage and retrieval. It offers a practical solution for predicting implied volatility in options trading and serves as a customizable and collaborative platform for users.
 
 ## Limitations and Future Improvements
-While the Implied Volatility Predictor Web App provides a practical application for predicting implied volatility in options trading, it has some limitations. For instance, the accuracy of the model is dependent on the quality and relevance of the data used for training. In addition, the app currently only supports CSV and Excel data files, limiting the types of data that can be used for training.
-
-Some possible future improvements for the app include adding support for additional data file formats, incorporating real-time data feeds, and implementing additional machine learning algorithms for predicting implied volatility.
+The app's accuracy depends on the quality and relevance of the training data, and it currently only supports CSV and Excel data files. Possible future improvements include additional data file format support, real-time data feeds, and implementing more machine learning algorithms for predicting implied volatility.
