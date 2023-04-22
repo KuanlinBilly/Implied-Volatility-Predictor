@@ -11,6 +11,9 @@ import tensorflow as tf
 from pymongo import MongoClient
 from sklearn.model_selection import train_test_split
 import streamlit as st
+import pickle
+import base64
+
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
@@ -210,7 +213,7 @@ class NeuralNetwork:
 
     def predict(self, x_test):
         return self.model.predict(x_test)
-
+ 
 
 class ModelTraining:
     def __init__(self, neural_network, model_training_times, num_epochs, batch_size, see_training_details):
@@ -287,4 +290,10 @@ def plot_training_history(history):
     ax2.set_xlabel('epoch')
     ax2.legend(['train loss'], loc='upper left')
     st.pyplot(fig)
+    
+def download_model(model):
+    output_model = pickle.dumps(model)
+    b64 = base64.b64encode(output_model).decode()
+    href = f'<a href="data:file/output_model;base64,{b64}">Download Trained Model .pkl File</a> (right-click and save as &lt;some_name&gt;.pkl)'
+    st.markdown(href, unsafe_allow_html=True)
  
