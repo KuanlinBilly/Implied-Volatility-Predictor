@@ -70,7 +70,7 @@ def show_login_page(placeholders):
             return False
     # Add a new placeholder for the GitHub hyperlink
     placeholders[7].markdown(
-        f'<p style="text-align: center; color: black; margin-top: 15px;"><a href="https://github.com/KuanlinBilly" target="_blank">Click here</a> to see my GitHub</p>',
+        f'<p style="text-align: center; color: black; margin-top: 15px;"><a href="https://github.com/KuanlinBilly/Implied-Volatility-Predictor" target="_blank">Click here</a> to see the source code on GitHub</p>',
         unsafe_allow_html=True,
     )
 
