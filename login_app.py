@@ -50,7 +50,7 @@ def show_login_page(placeholders):
     my_username = "ndhu"
     my_password = "1234"
     placeholders[0].title("Welcome!")
-    placeholders[1].markdown("**This is an Implied Volatility Predictor, Made by Kuanlin Lai**")
+    placeholders[1].markdown("**This is an Implied Volatility Predictor**")
     placeholders[2].write("Please enter your username and password:")
 
     username = placeholders[3].text_input("Username", value = my_username ) #為了方便，先預設填入帳密
