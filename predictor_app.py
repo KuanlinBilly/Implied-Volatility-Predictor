@@ -212,7 +212,7 @@ def implied_volatility_predictor():
     
     # Add title and description
     st.title('Implied Volatility Predictor')
-    st.text('By Kuanlin Lai')
+    #st.text('By Kuanlin Lai')
     st.markdown("##### You can customize and train a neural network for implied volatility prediction using this web app!")
     
     
