@@ -39,9 +39,7 @@ def implied_volatility_predictor():
     #st.text('By Kuanlin Lai')
     st.markdown("##### You can customize and train a neural network for implied volatility prediction using this web app!")
     
-    # comment_box  
-    comment_box = CommentBox(mongo_collection)
-    comment_box.display()
+
     
     # In the sidebar, allow users to enable or disable random seed initialization
     allow_randomness = st.sidebar.checkbox("Check this to Allow Randomization")
@@ -65,7 +63,10 @@ def implied_volatility_predictor():
     data_loader = DataLoader(csv_choice)
     D = data_loader.load_data()
     
- 
+    # comment_box  
+    comment_box = CommentBox(mongo_collection)
+    comment_box.display()
+    
     # Proceed if any CSV or excel file is selected (uploaded or default)
     if D is None:
         # No file selected, prompt user to upload a file
@@ -114,17 +115,13 @@ def implied_volatility_predictor():
     
     try: 
         if st.button('Train'): #if click the training bottom
-            if D is None:
-                st.write('請先上傳你的資料集') 
-            else:
+            if D is not None:
                 neural_network = NeuralNetwork(dim, neurons, category)
                 model_training = ModelTraining(neural_network, model_training_times, num_epochs, batch_size, see_training_details)
                 accuracies, history, total_time, score = model_training.train_and_evaluate(x_train, y_train2, x_test, y_test2)
                 model_training.display_results(accuracies, history, total_time, score)
-                
-        #  下載模型 
-        if neural_network is not None:        
-            download_model(neural_network.model)
+                # 下載模型 
+                download_model(neural_network.model)
     
     except: 
         st.write('發生錯誤，請再重新按一次Train按鈕，請勿在訓練過程中變更參數或其他設定') 
