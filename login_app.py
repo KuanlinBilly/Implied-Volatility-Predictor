@@ -85,8 +85,12 @@ def show_login_page(placeholders, mongo_collection):
     placeholders[1].markdown("**This is an Implied Volatility Predictor**")
     placeholders[2].write("Please enter your username and password:")
 
-    username = placeholders[3].text_input("Username")
-    password = placeholders[4].text_input("Password", type="password")
+    # Set default values for username and password
+    default_username = "ndhu"
+    default_password = "1234"
+
+    username = placeholders[3].text_input("Username", value=default_username)
+    password = placeholders[4].text_input("Password", type="password", value=default_password)
 
     # User Login
     if placeholders[5].button("Log In"):
