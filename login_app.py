@@ -107,7 +107,7 @@ def show_login_page(placeholders, mongo_collection):
             
 
     # User Registration
-    if placeholders[7].button("Sign Up"):
+    if placeholders[7].button("Sign Up a New Account"):
         if username and password:
             existing_user = User.get_user(username, mongo_collection)
             if existing_user is None:
