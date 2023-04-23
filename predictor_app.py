@@ -63,9 +63,7 @@ def implied_volatility_predictor():
     data_loader = DataLoader(csv_choice)
     D = data_loader.load_data()
     
-    # comment_box  
-    comment_box = CommentBox(mongo_collection)
-    comment_box.display()
+
     
     # Proceed if any CSV or excel file is selected (uploaded or default)
     if D is None:
@@ -126,6 +124,10 @@ def implied_volatility_predictor():
     except: 
         st.write('發生錯誤，請再重新按一次Train按鈕，請勿在訓練過程中變更參數或其他設定') 
         st.write('若要在訓練過程中變更參數或其他設定，請先按右上角Stop按鈕停止訓練，再進行變更')
-        
+    
+    # comment_box  
+    comment_box = CommentBox(mongo_collection)
+    comment_box.display()
+    
 if __name__ == "__main__":
     implied_volatility_predictor()
